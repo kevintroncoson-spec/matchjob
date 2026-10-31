@@ -1,0 +1,26 @@
+{
+  "name": "MatchJob — Encuentra trabajo con un ❤️",
+  "short_name": "MatchJob",
+  "description": "Descubre ofertas que hacen match con tu perfil. Postula con un like.",
+  "start_url": "/feed",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#F7FAFD",
+  "theme_color": "#042C53",
+  "lang": "es-CL",
+  "categories": ["business", "productivity"],
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
