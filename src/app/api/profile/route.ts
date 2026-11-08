@@ -76,3 +76,29 @@ export async function GET() {
 
   return NextResponse.json({ profile, experience: experience ?? [], applicationsCount: applicationsCount ?? 0 })
 }
+
+// PATCH /api/profile — editar datos del perfil (sin tocar las preferencias del onboarding)
+export async function PATCH(request: NextRequest) {
+  const supabase = supabaseRoute()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
+
+  const { name, role, location, bio, phone, skills } = await request.json()
+
+  const update: Record<string, any> = {}
+  if (typeof name === 'string' && name.trim()) update.name = name.trim()
+  if (role !== undefined) update.role = role || null
+  if (location !== undefined) update.location = location || null
+  if (bio !== undefined) update.bio = bio || null
+  if (phone !== undefined) update.phone = phone || null
+  if (Array.isArray(skills)) update.skills = skills
+
+  if (Object.keys(update).length === 0) {
+    return NextResponse.json({ error: 'Nada que actualizar' }, { status: 400 })
+  }
+
+  const admin = supabaseAdmin()
+  const { error } = await admin.from('profiles').update(update).eq('user_id', user.id)
+  if (error) return NextResponse.json({ error: error.message }, { status: 400 })
+  return NextResponse.json({ ok: true })
+}

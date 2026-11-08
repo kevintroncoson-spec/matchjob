@@ -14,30 +14,40 @@ export async function GET(request: NextRequest) {
     const { data, error } = await supabase.auth.exchangeCodeForSession(code)
 
     if (!error && data.user) {
-      // Crear perfil si es primer login
       const admin = supabaseAdmin()
-      const { data: existing } = await admin
+      const meta = data.user.user_metadata ?? {}
+
+      const { data: profile } = await admin
         .from('profiles')
-        .select('id')
+        .select('id, avatar_url, contact_email, role, skills, salary_min')
         .eq('user_id', data.user.id)
         .single()
 
-      if (!existing) {
-        // Pre-rellenar desde metadata OAuth
-        const meta = data.user.user_metadata
+      if (!profile) {
+        // Por si el trigger de la BD no creó el perfil: lo creamos con los datos del proveedor
         await admin.from('profiles').insert({
           user_id: data.user.id,
           name: meta.full_name || meta.name || data.user.email?.split('@')[0] || 'Usuario',
           avatar_url: meta.avatar_url || meta.picture || null,
-          type: 'candidate', // por defecto; se puede cambiar en onboarding
+          contact_email: data.user.email ?? null,
+          type: 'candidate',
           skills: [],
           expected_benefits: [],
         })
-        // Primer login → onboarding
         return NextResponse.redirect(`${origin}/onboarding`)
       }
 
-      return NextResponse.redirect(`${origin}${next}`)
+      // Completar datos del proveedor (foto/correo) que falten, sin pisar lo que el usuario ya editó
+      const fill: Record<string, any> = {}
+      if (!profile.avatar_url && (meta.avatar_url || meta.picture)) fill.avatar_url = meta.avatar_url || meta.picture
+      if (!profile.contact_email && data.user.email) fill.contact_email = data.user.email
+      if (Object.keys(fill).length > 0) {
+        await admin.from('profiles').update(fill).eq('user_id', data.user.id)
+      }
+
+      // Perfil recién creado / sin completar → onboarding; si ya tiene preferencias → feed
+      const incompleto = profile.salary_min == null && !profile.role && (profile.skills?.length ?? 0) === 0
+      return NextResponse.redirect(`${origin}${incompleto ? '/onboarding' : next}`)
     }
   }
 

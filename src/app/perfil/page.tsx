@@ -76,6 +76,10 @@ export default function PerfilPage() {
                 <div className="text-xs text-brand-400">experiencias</div>
               </div>
             </div>
+
+            <button onClick={() => router.push('/perfil/editar')} className="btn-primary w-full mt-4 text-sm">
+              Editar perfil
+            </button>
           </div>
         </div>
 
