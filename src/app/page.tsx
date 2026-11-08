@@ -3,6 +3,7 @@
 import { signInWithGoogle, signInWithLinkedIn } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import EmailAuth from '@/components/EmailAuth'
+// redeploy 2026-11-07: forzar rebuild para tomar el nuevo backend Supabase
 
 export default function LandingPage() {
   const router = useRouter()
